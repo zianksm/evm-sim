@@ -1,5 +1,7 @@
 [workspace]
-members = ["vm"]
+members = [ "common","vm"]
 
 [workspace.dependencies]
 revm = "14.0.3"                # revm - Rust Ethereum Virtual Machine 
+anyhow = "1.0.89"                # Flexible concrete Error type built on std::error::Error
+serde_json = "1.0.128"                # A JSON serialization file format

@@ -9,13 +9,13 @@ pub struct Vm<'a> {
 impl Vm<'_> {
     pub fn new() -> Self {
         let vm = EvmBuilder::default().build();
-        
+
         Self {
             instance: vm,
         }
     }
 
-    pub fn execute(&mut self, code: &[u8]) -> Result<(), String> {
-        self.instance.transact()
+    pub fn execute(&mut self) {
+        // self.instance.modify().modify_tx_env(|tx|tx.)
     }
 }
