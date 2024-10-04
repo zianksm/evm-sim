@@ -1,0 +1,5 @@
+[workspace]
+members = ["vm"]
+
+[workspace.dependencies]
+revm = "14.0.3"                # revm - Rust Ethereum Virtual Machine 
