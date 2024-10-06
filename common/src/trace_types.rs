@@ -203,26 +203,6 @@ impl<'de> Deserialize<'de> for Encoding {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct StorageItemType {
-    /// original unprocessed type name(e.g mapping(uint256 => uint256), uint256[], uint256[2]).
-    /// usually beccame the index/object name itself
-    pub full_qualified_type_name: String,
-    body: StorageItemTypeBody,
-}
-#[derive(Debug, Clone)]
-pub struct StorageItemTypeBody {
-    /// original unprocessed type name(e.g mapping(uint256 => uint256), uint256[], uint256[2]).
-    /// usually beccame the index/object name itself
-    pub encoding: Encoding,
-    pub number_of_bytes: u64,
-    members: Option<Vec<StorageItemType>>,
-    key: Option<Box<StorageItemType>>,
-    value: Option<Box<StorageItemType>>,
-    base: Option<Box<StorageItemType>>,
-    pub label: TypeLabel,
-}
-
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GenericStorageTypes {
