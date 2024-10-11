@@ -1,4 +1,7 @@
+use std::hash::Hash;
+
 use serde::{ Deserialize, Serialize };
+use tiny_keccak::Hasher;
 
 macro_rules! solidity_types {
     ($($type_name:ident => $type_value:expr),*) => {
@@ -179,6 +182,29 @@ pub struct StorageItem<Type = String> {
     // TODO: this should be properly handled
     #[serde(rename = "type")]
     pub types: Type,
+}
+
+impl StorageItem<String> {
+    pub fn to_typed(&self, types: StorageTypes) -> StorageItem<StorageTypes> {
+        StorageItem {
+            ast_id: self.ast_id,
+            contract: self.contract.clone(),
+            label: self.label.clone(),
+            offset: self.offset,
+            slot: self.slot.clone(),
+            types,
+        }
+    }
+}
+
+pub trait Stored {
+    fn as_storage_keys(&self) -> [u8; 32];
+}
+
+impl Stored for StorageItem<StorageTypes> {
+    fn as_storage_keys(&self) -> [u8; 32] {
+        todo!()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -481,12 +507,51 @@ impl GenericStorageTypes {
             _ => None,
         }
     }
+
+    pub fn try_as_primitive(&self) -> Option<PrimitiveStorageItemType> {
+        // make sure it's not a struct
+        if let Some(_) = self.try_as_primitive() {
+            return None;
+        }
+
+        match self.encoding {
+            Encoding::Inplace =>
+                Some(PrimitiveStorageItemType {
+                    encoding: self.encoding.clone(),
+                    number_of_bytes: self.number_of_bytes.parse().expect("Expected a number"),
+                    label: self.label.clone(),
+                }),
+            _ => None,
+        }
+    }
 }
 
 pub enum StorageTypes {
     DynamicArray(DynamicArrayStorageItemType),
     Mapping(MappingStorageItemType),
     Struct(StructStorageItemType),
+    Primitive(PrimitiveStorageItemType),
+}
+
+impl StorageTypes {
+    pub fn from_generic_storage_type(generic_storage_type: GenericStorageTypes) -> Self {
+        match generic_storage_type.encoding {
+            Encoding::Inplace => {
+                if let Some(struct_storage_item) = generic_storage_type.try_as_struct() {
+                    StorageTypes::Struct(struct_storage_item)
+                } else {
+                    let primitive_storage_item = generic_storage_type
+                        .try_as_primitive()
+                        .expect("Can't decode as primitive or struct");
+
+                    StorageTypes::Primitive(primitive_storage_item)
+                }
+            }
+            Encoding::Mapping => todo!("Mapping encoding not supported for now"),
+            Encoding::DynamicArray => todo!("Dynamic array encoding not supported for now"),
+            Encoding::Bytes => todo!("Bytes encoding not supported for now"),
+        }
+    }
 }
 
 // TODO : make a simple parser for type generating storage keys for types
@@ -517,4 +582,28 @@ pub struct StructStorageItemType {
     pub number_of_bytes: u8,
     pub members: Vec<StorageItem<String>>,
     pub label: TypeLabel,
+}
+
+#[derive(Debug, Clone)]
+pub struct PrimitiveStorageItemType {
+    pub encoding: Encoding,
+    pub number_of_bytes: u8,
+    pub label: TypeLabel,
+}
+
+impl PrimitiveStorageItemType {
+    pub fn generate_storage_key(&self, slot: String) -> [u8; 32] {
+        let uint = revm::primitives::U256::try_from(slot).unwrap();
+
+        revm::primitives::keccak256(bytes)
+        let mut hasher = tiny_keccak::Keccak::v256();
+
+        hasher.update(&uint.as_le_bytes());
+
+        let mut buff = [0u8; 32];
+
+        hasher.finalize(&mut buff);
+
+        buff
+    }
 }
