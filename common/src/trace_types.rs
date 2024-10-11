@@ -174,7 +174,7 @@ pub struct StorageItem<Type = String> {
     pub ast_id: u64,
     pub contract: String,
     pub label: String,
-    pub offset: u64,
+    pub offset: u8,
     pub slot: String,
     // TODO: this should be properly handled
     #[serde(rename = "type")]
@@ -441,75 +441,80 @@ mod parse_test {
     }
 }
 
-impl StorageItemType {
+impl GenericStorageTypes {
     pub fn try_as_dynamic_array(&self) -> Option<DynamicArrayStorageItemType> {
-        match self.body.encoding {
+        match self.encoding {
             Encoding::DynamicArray =>
                 Some(DynamicArrayStorageItemType {
-                    full_qualified_type_name: self.full_qualified_type_name.clone(),
-                    encoding: self.body.encoding.clone(),
-                    number_of_bytes: self.body.number_of_bytes,
-                    base: self.body.base.clone(),
-                    label: self.body.label.clone(),
+                    encoding: self.encoding.clone(),
+                    number_of_bytes: self.number_of_bytes.parse().expect("Expected a number"),
+                    base: self.base.clone()?,
+                    label: self.label.clone(),
                 }),
             _ => None,
         }
     }
 
     pub fn try_as_mapping(&self) -> Option<MappingStorageItemType> {
-        match self.body.encoding {
+        match self.encoding {
             Encoding::Mapping =>
                 Some(MappingStorageItemType {
-                    full_qualified_type_name: self.full_qualified_type_name.clone(),
-                    encoding: self.body.encoding.clone(),
-                    number_of_bytes: self.body.number_of_bytes,
-                    key: self.body.key.clone().unwrap(),
-                    value: self.body.value.clone().unwrap(),
-                    label: self.body.label.clone(),
+                    encoding: self.encoding.clone(),
+                    number_of_bytes: self.number_of_bytes.parse().expect("Expected a number"),
+                    key: self.key.clone().unwrap(),
+                    value: self.value.clone().unwrap(),
+                    label: self.label.clone(),
                 }),
             _ => None,
         }
     }
 
     pub fn try_as_struct(&self) -> Option<StructStorageItemType> {
-        match self.body.encoding {
+        match self.encoding {
             Encoding::Inplace =>
                 Some(StructStorageItemType {
-                    full_qualified_type_name: self.full_qualified_type_name.clone(),
-                    encoding: self.body.encoding.clone(),
-                    number_of_bytes: self.body.number_of_bytes,
-                    members: self.body.members.clone().unwrap(),
-                    label: self.body.label.clone(),
+                    encoding: self.encoding.clone(),
+                    number_of_bytes: self.number_of_bytes.parse().expect("Expected a number"),
+                    members: self.members.clone().expect("Expected members"),
+                    label: self.label.clone(),
                 }),
             _ => None,
         }
     }
 }
 
+pub enum StorageTypes {
+    DynamicArray(DynamicArrayStorageItemType),
+    Mapping(MappingStorageItemType),
+    Struct(StructStorageItemType),
+}
+
+// TODO : make a simple parser for type generating storage keys for types
+
 #[derive(Debug, Clone)]
 pub struct DynamicArrayStorageItemType {
-    pub full_qualified_type_name: String,
     pub encoding: Encoding,
     pub number_of_bytes: u64,
-    pub base: Option<Box<StorageItemType>>,
+    // type key
+    pub base: String,
     pub label: TypeLabel,
 }
 
 #[derive(Debug, Clone)]
 pub struct MappingStorageItemType {
-    pub full_qualified_type_name: String,
     pub encoding: Encoding,
     pub number_of_bytes: u64,
-    pub key: Box<StorageItemType>,
-    pub value: Box<StorageItemType>,
+    // type key
+    pub key: String,
+    // type key
+    pub value: String,
     pub label: TypeLabel,
 }
 
 #[derive(Debug, Clone)]
 pub struct StructStorageItemType {
-    pub full_qualified_type_name: String,
     pub encoding: Encoding,
-    pub number_of_bytes: u64,
-    pub members: Vec<StorageItemType>,
+    pub number_of_bytes: u8,
+    pub members: Vec<StorageItem<String>>,
     pub label: TypeLabel,
 }

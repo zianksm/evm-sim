@@ -8,3 +8,4 @@ serde_json = "1.0.128" # A JSON serialization file format
 serde = { version = "1.0.210", features = [
     "derive",
 ] } # A generic serialization/deserialization framework
+tiny-keccak = "2.0.2"          # An implementation of Keccak derived functions.
