@@ -1,5 +1,6 @@
 use std::hash::Hash;
 
+use revm::primitives::{ alloy_primitives::utils::{ ParseUnits, Unit }, FixedBytes };
 use serde::{ Deserialize, Serialize };
 use tiny_keccak::Hasher;
 
@@ -510,7 +511,7 @@ impl GenericStorageTypes {
 
     pub fn try_as_primitive(&self) -> Option<PrimitiveStorageItemType> {
         // make sure it's not a struct
-        if let Some(_) = self.try_as_primitive() {
+        if let Some(_) = self.try_as_struct() {
             return None;
         }
 
@@ -592,18 +593,9 @@ pub struct PrimitiveStorageItemType {
 }
 
 impl PrimitiveStorageItemType {
-    pub fn generate_storage_key(&self, slot: String) -> [u8; 32] {
-        let uint = revm::primitives::U256::try_from(slot).unwrap();
+    pub fn generate_storage_key(&self, slot: String) -> FixedBytes<32> {
+        let uint = ParseUnits::parse_units(&slot, Unit::WEI).unwrap();
 
-        revm::primitives::keccak256(bytes)
-        let mut hasher = tiny_keccak::Keccak::v256();
-
-        hasher.update(&uint.as_le_bytes());
-
-        let mut buff = [0u8; 32];
-
-        hasher.finalize(&mut buff);
-
-        buff
+        revm::primitives::keccak256(uint.get_absolute().to_be_bytes::<32>())
     }
 }
