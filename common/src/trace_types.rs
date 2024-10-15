@@ -205,7 +205,7 @@ pub trait StorageKeys {
 impl StorageKeys for StorageItem<StorageTypes> {
     fn as_storage_keys(&self) -> U256 {
         match self.types {
-            StorageTypes::Primitive(ref primitive) => {
+            StorageTypes::Primitive(_) => {
                 let unit = ParseUnits::parse_units(&self.slot, Unit::WEI).unwrap();
                 U256::try_from(unit).expect("Expected a valid number")
             }
