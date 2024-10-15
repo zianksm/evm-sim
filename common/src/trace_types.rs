@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use revm::primitives::{ alloy_primitives::utils::{ ParseUnits, Unit }, FixedBytes };
+use revm::primitives::{ alloy_primitives::utils::{ ParseUnits, Unit }, FixedBytes, U256 };
 use serde::{ Deserialize, Serialize };
 use tiny_keccak::Hasher;
 
@@ -198,13 +198,44 @@ impl StorageItem<String> {
     }
 }
 
-pub trait Stored {
-    fn as_storage_keys(&self) -> [u8; 32];
+pub trait StorageKeys {
+    fn as_storage_keys(&self) -> U256;
 }
 
-impl Stored for StorageItem<StorageTypes> {
-    fn as_storage_keys(&self) -> [u8; 32] {
-        todo!()
+impl StorageKeys for StorageItem<StorageTypes> {
+    fn as_storage_keys(&self) -> U256 {
+        match self.types {
+            StorageTypes::Primitive(ref primitive) => {
+                let unit = ParseUnits::parse_units(&self.slot, Unit::WEI).unwrap();
+                U256::try_from(unit).expect("Expected a valid number")
+            }
+
+            _ => unimplemented!("Only primitive types are supported for now"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod storage_keys_test {
+    use super::*;
+
+    #[test]
+    fn test_storage_keys() {
+        let storage_item = StorageItem {
+            ast_id: 3,
+            contract: "fileA:A".to_string(),
+            label: "a".to_string(),
+            offset: 0,
+            slot: "0".to_string(),
+            types: StorageTypes::Primitive(PrimitiveStorageItemType {
+                encoding: Encoding::Inplace,
+                number_of_bytes: 32,
+                label: TypeLabel::UINT256,
+            }),
+        };
+
+        let storage_keys = storage_item.as_storage_keys();
+        assert_eq!(storage_keys, U256::from(0));
     }
 }
 
@@ -590,12 +621,4 @@ pub struct PrimitiveStorageItemType {
     pub encoding: Encoding,
     pub number_of_bytes: u8,
     pub label: TypeLabel,
-}
-
-impl PrimitiveStorageItemType {
-    pub fn generate_storage_key(&self, slot: String) -> FixedBytes<32> {
-        let uint = ParseUnits::parse_units(&slot, Unit::WEI).unwrap();
-
-        revm::primitives::keccak256(uint.get_absolute().to_be_bytes::<32>())
-    }
 }
