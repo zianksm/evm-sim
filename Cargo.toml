@@ -11,4 +11,4 @@ tokio = "1.41.1" # An event-driven, non-blocking I/O platform for writing asynch
 anyhow = "1.0.95" # Flexible concrete Error type built on std::error::Error
 pyo3 = "0.23.3" # Bindings to Python interpreter
 serde = "1.0.217" # A generic serialization/deserialization framework
-
+hex = "0.4.3"                        # Encoding and decoding data into/from hexadecimal representation.

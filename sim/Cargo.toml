@@ -8,3 +8,4 @@ foundry-evm = { workspace = true }
 tokio = { workspace = true }
 alloy = { workspace = true }
 anyhow = { workspace = true }
+hex = { workspace = true }

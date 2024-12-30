@@ -1,4 +1,4 @@
-use alloy::primitives::{Address, TxKind, Uint};
+use alloy::primitives::{TxKind, Uint};
 use foundry_evm::{
     backend::{DatabaseError, SharedBackend},
     revm::{
@@ -9,11 +9,14 @@ use foundry_evm::{
     traces::{TracingInspector, TracingInspectorConfig},
 };
 
+pub type Address = alloy::primitives::Address;
+pub type Uint256 = alloy::primitives::Uint<256, 4>;
+
 #[derive(Debug, Clone)]
 pub struct Tx {
     pub from: Address,
     pub to: Address,
-    pub value: Uint<256, 4>,
+    pub value: Uint256,
     pub data: Vec<u8>,
 }
 
@@ -50,7 +53,7 @@ pub struct EvmFactory {
 }
 
 impl EvmFactory {
-   pub fn with_tx(&self, txs: Vec<Tx>) -> LocalEvm<'_> {
+    pub fn with_tx(&self, txs: Vec<Tx>) -> LocalEvm<'_> {
         let context = foundry_evm::revm::Context::new_with_db(self.db.clone());
 
         let ctx = TracingInspector::new(TracingInspectorConfig::default_geth());
