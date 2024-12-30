@@ -3,11 +3,11 @@ use alloy::transports::http::reqwest::Url;
 use anyhow::Result;
 use foundry_evm::{
     backend::{BlockchainDb, BlockchainDbMeta, DatabaseError, SharedBackend},
-    revm::{
-        db::CacheDB,
-        primitives::{EVMError, ExecutionResult},
-    },
+    revm::db::CacheDB,
 };
+
+pub type ExecutionResult = foundry_evm::revm::primitives::ExecutionResult;
+pub type ExecutionError = foundry_evm::revm::primitives::EVMError<DatabaseError>;
 
 pub struct Simulator {
     factory: EvmFactory,
@@ -34,7 +34,7 @@ impl Simulator {
         Ok(Self { factory })
     }
 
-    pub fn simulate(&self, txs: Vec<Tx>) -> Vec<Result<ExecutionResult, EVMError<DatabaseError>>> {
+    pub fn simulate(&self, txs: Vec<Tx>) -> Vec<Result<ExecutionResult, ExecutionError>> {
         let vm = self.factory.with_tx(txs);
 
         vm.exec_raw()
