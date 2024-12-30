@@ -8,6 +8,7 @@ use foundry_evm::{
 
 pub type ExecutionResult = foundry_evm::revm::primitives::ExecutionResult;
 pub type ExecutionError = foundry_evm::revm::primitives::EVMError<DatabaseError>;
+pub type Bytes32 = foundry_evm::revm::primitives::FixedBytes<32>;
 
 pub struct Simulator {
     factory: EvmFactory,
