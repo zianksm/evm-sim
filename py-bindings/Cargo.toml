@@ -1,13 +1,13 @@
 [package]
-name = "py-bindings"
+name = "evm_sim"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 pyo3 = { workspace = true }
-sim = { path = "../sim" }
+sim = { package = "simulator-core", path = "../sim" }
 anyhow = { workspace = true }
 hex = { workspace = true }
 
 [lib]
-name = "evm_simulator"
+name = "evm_sim"
