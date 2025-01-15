@@ -8,6 +8,8 @@ pyo3 = { workspace = true }
 sim = { package = "simulator-core", path = "../sim" }
 anyhow = { workspace = true }
 hex = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
 
 [lib]
 name = "evm_sim"
