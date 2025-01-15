@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use pyo3::{class, FromPyObject, PyRef};
+use serde_json::ser;
 use sim::{
     evm::{Address, Tx, Uint256},
     evm_primitives,
@@ -82,31 +83,58 @@ impl TryFrom<Transaction> for Tx {
 #[pyo3::pyclass]
 pub struct Txs(Vec<Tx>);
 
-#[derive(Clone, Debug)]
 #[pyo3::pyclass]
-pub enum SimulationResult {
-    Ok(ExecutionResult),
-    Err(ExecutionError<DatabaseErrorRef>),
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct EvmExecutionResult(ExecutionResult);
+
+impl From<ExecutionResult> for EvmExecutionResult {
+    fn from(value: ExecutionResult) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Clone, Debug)]
+#[pyo3::pyclass]
+pub enum SimulationResult {
+    Ok(EvmExecutionResult),
+    Err(EvmExecutionError),
+}
+
+impl From<ExecutionResult> for SimulationResult {
+    fn from(value: ExecutionResult) -> Self {
+        Self::Ok(value.into())
+    }
+}
+
+#[pyo3::pyclass]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct DatabaseErrorRef(String);
 
-impl From<ExecutionError> for ExecutionError<DatabaseErrorRef> {
+#[pyo3::pyclass]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct EvmExecutionError(ExecutionError<DatabaseErrorRef>);
+
+impl From<ExecutionError> for EvmExecutionError {
     fn from(value: ExecutionError) -> Self {
-        match value {
+        let value = match value {
             evm_primitives::EVMError::Transaction(invalid_transaction) => {
-                Self::Transaction(invalid_transaction)
+                ExecutionError::<DatabaseErrorRef>::Transaction(invalid_transaction)
             }
-            evm_primitives::EVMError::Header(invalid_header) => Self::Header(invalid_header),
+            evm_primitives::EVMError::Header(invalid_header) => {
+                ExecutionError::<DatabaseErrorRef>::Header(invalid_header)
+            }
 
             // we convert them to strings, since we can't pass the error directly(it can but we need to do a whole lot of work)
             evm_primitives::EVMError::Database(e) => {
-                Self::Database(DatabaseErrorRef(e.to_string()))
+                ExecutionError::<DatabaseErrorRef>::Database(DatabaseErrorRef(e.to_string()))
             }
-            evm_primitives::EVMError::Custom(s) => Self::Custom(s),
-            evm_primitives::EVMError::Precompile(s) => Self::Precompile(s),
-        }
+            evm_primitives::EVMError::Custom(s) => ExecutionError::<DatabaseErrorRef>::Custom(s),
+            evm_primitives::EVMError::Precompile(s) => {
+                ExecutionError::<DatabaseErrorRef>::Precompile(s)
+            }
+        };
+
+        Self(value)
     }
 }
 
