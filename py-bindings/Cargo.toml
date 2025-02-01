@@ -13,3 +13,4 @@ serde = { workspace = true }
 
 [lib]
 name = "evm_sim"
+crate-type = ["cdylib"]

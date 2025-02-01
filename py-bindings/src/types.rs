@@ -58,6 +58,19 @@ pub struct Transaction {
     data: Vec<u8>,
 }
 
+#[pyo3::pymethods]
+impl Transaction {
+    #[new]
+    pub fn new(from: &str, to: &str, value: &str, data: Vec<u8>) -> Self {
+        Self {
+            from: from.to_string(),
+            to: to.to_string(),
+            value: value.to_string(),
+            data,
+        }
+    }
+}
+
 impl TryFrom<Transaction> for Tx {
     type Error = Error;
 
@@ -82,6 +95,20 @@ impl TryFrom<Transaction> for Tx {
 #[derive(Clone, Debug)]
 #[pyo3::pyclass]
 pub struct Txs(Vec<Tx>);
+
+#[pyo3::pymethods]
+impl Txs {
+    #[new]
+    pub fn new(txs: Vec<Transaction>) -> Self {
+        let txs = txs
+            .into_iter()
+            .map(|tx| Tx::try_from(tx).map_err(|e| e.into()))
+            .collect::<Result<Vec<Tx>>>()
+            .expect("Failed to serialize transactions");
+
+        Self(txs)
+    }
+}
 
 #[pyo3::pyclass]
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -138,6 +165,15 @@ impl From<ExecutionError> for EvmExecutionError {
     }
 }
 
+impl From<std::result::Result<ExecutionResult, ExecutionError>> for SimulationResult {
+    fn from(value: std::result::Result<ExecutionResult, ExecutionError>) -> Self {
+        match value {
+            Ok(v) => Self::Ok(v.into()),
+            Err(e) => Self::Err(e.into()),
+        }
+    }
+}
+
 #[pyo3::pyclass(frozen)]
 pub struct EvmSimulator {
     // we wrap it in Arc, since all simulation doesn't require mutable access
@@ -155,9 +191,10 @@ impl EvmSimulator {
     }
 
     #[pyo3(text_signature = "($self, transactions)")]
-    pub fn simulate(&self, transactions: Txs) {
+    pub fn simulate(&self, transactions: Txs) -> Vec<SimulationResult> {
         let txs = transactions.0;
         let result = self.inner.simulate(txs);
-        todo!()
+
+        result.into_iter().map(|r| r.into()).collect::<_>()
     }
 }
