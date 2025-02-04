@@ -13,3 +13,4 @@ pyo3 = "0.23.3" # Bindings to Python interpreter
 serde = "1.0.217" # A generic serialization/deserialization framework
 hex = "0.4.3"                        # Encoding and decoding data into/from hexadecimal representation.
 serde_json = "1.0.135"                                 # A JSON serialization file format
+revm = "19.4.0"                # revm - Rust Ethereum Virtual Machine

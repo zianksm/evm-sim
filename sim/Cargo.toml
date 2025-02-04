@@ -9,3 +9,4 @@ tokio = { workspace = true }
 alloy = { workspace = true }
 anyhow = { workspace = true }
 hex = { workspace = true }
+revm = { workspace = true }
