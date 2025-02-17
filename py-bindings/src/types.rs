@@ -59,12 +59,13 @@ pub struct Transaction {
     data: Vec<u8>,
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pymethods]
 #[pyo3::pymethods]
 impl Transaction {
     #[new]
-    pub fn new(from: &str, to: &str, value: &str, data: Vec<u8>) -> Self {
+    pub fn new(_from: &str, to: &str, value: &str, data: Vec<u8>) -> Self {
         Self {
-            from: from.to_string(),
+            from: _from.to_string(),
             to: to.to_string(),
             value: value.to_string(),
             data,
@@ -112,6 +113,7 @@ impl Txs {
     }
 }
 
+// TODO: add extra method for getting statuses
 #[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -122,7 +124,7 @@ impl From<ExecutionResult> for EvmExecutionResult {
         Self(value)
     }
 }
-
+#[pyo3_stub_gen::derive::gen_stub_pyclass_enum]
 #[derive(Clone, Debug)]
 #[pyo3::pyclass]
 pub enum SimulationResult {
@@ -136,10 +138,26 @@ impl From<ExecutionResult> for SimulationResult {
     }
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct DatabaseErrorRef(String);
 
+impl From<String> for DatabaseErrorRef {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+#[pyo3_stub_gen::derive::gen_stub_pymethods]
+#[pyo3::pymethods]
+impl DatabaseErrorRef {
+    pub fn get(&self) -> String {
+        self.0.clone()
+    }
+}
+
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct EvmExecutionError(ExecutionError<DatabaseErrorRef>);
@@ -185,6 +203,7 @@ pub struct EvmSimulator {
     inner: Arc<Simulator>,
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pymethods]
 #[pyo3::pymethods]
 impl EvmSimulator {
     #[new]
