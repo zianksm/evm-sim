@@ -4,13 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-pyo3 = { workspace = true }
+pyo3 = { workspace = true, features = ["extension-module"] }
 sim = { package = "simulator-core", path = "../sim" }
 anyhow = { workspace = true }
 hex = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }
+pyo3-stub-gen = { workspace = true }
 
 [lib]
 name = "evm_sim"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]

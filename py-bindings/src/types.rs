@@ -49,6 +49,7 @@ where
     }
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
 #[derive(Clone, Debug)]
 pub struct Transaction {
@@ -91,11 +92,12 @@ impl TryFrom<Transaction> for Tx {
         })
     }
 }
-
-#[derive(Clone, Debug)]
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
+#[derive(Clone, Debug)]
 pub struct Txs(Vec<Tx>);
 
+#[pyo3_stub_gen::derive::gen_stub_pymethods]
 #[pyo3::pymethods]
 impl Txs {
     #[new]
@@ -110,6 +112,7 @@ impl Txs {
     }
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass]
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct EvmExecutionResult(ExecutionResult);
@@ -174,6 +177,7 @@ impl From<std::result::Result<ExecutionResult, ExecutionError>> for SimulationRe
     }
 }
 
+#[pyo3_stub_gen::derive::gen_stub_pyclass]
 #[pyo3::pyclass(frozen)]
 pub struct EvmSimulator {
     // we wrap it in Arc, since all simulation doesn't require mutable access

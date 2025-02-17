@@ -1,13 +1,7 @@
-import nox
+from nox import session
 
-@nox.session
+@session()
 def tests(session):
-    session.install('pytest')
-    session.run('pytest')
-
-@nox.session
-def lint(session):
-    session.install('flake8')
-    session.run('flake8', '--import-order-style', 'google')
-
-
+    session.install(".",)
+    session.install("pytest", "pytest-cov")
+    session.run("pytest")

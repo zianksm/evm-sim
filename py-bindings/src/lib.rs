@@ -7,6 +7,7 @@ use pyo3::{
     types::{PyModule, PyModuleMethods},
     wrap_pyfunction, Bound, PyResult,
 };
+use pyo3_stub_gen::define_stub_info_gatherer;
 use sim::{
     evm::Tx,
     simulator::{ExecutionError, ExecutionResult, Simulator},
@@ -28,3 +29,6 @@ fn evm_sim(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     Ok(())
 }
+
+// Define a function to gather stub information.
+define_stub_info_gatherer!(stub_info);
