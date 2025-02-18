@@ -1,0 +1,71 @@
+syntax = "proto3";
+package simulator;
+
+service Simulator {
+    rpc initialize(InitializeRequest) returns (InitializeReply);
+    rpc simulate (Transactions) returns (Results);
+}
+
+message InitializeRequest {
+    uint32 chain_id = 1;
+    string url = 2;
+}
+
+message InitializeReply {
+    string message = 1;
+}
+
+message Log {
+    string address = 1;
+    repeated uint32 topics = 2;
+    repeated uint32 data = 3;
+}
+
+message Output {
+    bool is_call = 1;
+    repeated string hex_data = 2;
+    string address = 3;
+}
+
+message Revert {
+    uint32 gas_used = 1;
+    string hex_output = 2;
+}
+
+message Success {
+    string reason = 1;
+    uint64 gas_used = 2;
+    uint64 gas_refunded = 3;
+    repeated Log logs = 4;
+    Output output = 5;
+}
+
+message Result {
+    bool is_success = 1;
+    Success success = 2;
+    Revert revert = 3;
+}
+
+message Results {
+    repeated Result results = 1;
+}
+
+message Transaction {
+    string from = 1;
+    string to = 2;
+    string value = 3;
+    string hex_data = 4;
+}
+
+message Transactions {
+    repeated Transaction transactions = 1;
+    uint32 chain_id = 2;
+}
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloReply {
+    string message = 1;
+}
