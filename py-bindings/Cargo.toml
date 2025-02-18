@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-pyo3 = { workspace = true, features = ["extension-module"] }
+pyo3 = {version = "0.23.3"} # Bindings to Python interpreter
 sim = { package = "simulator-core", path = "../sim" }
 anyhow = { workspace = true }
 hex = { workspace = true }

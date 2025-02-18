@@ -1,5 +1,5 @@
 use crate::evm::{EvmFactory, Tx};
-use alloy::transports::http::reqwest::Url;
+use alloy::transports::{http::reqwest::Url, Transport};
 use anyhow::Result;
 use foundry_evm::{
     backend::{BlockchainDb, BlockchainDbMeta, DatabaseError, SharedBackend},
@@ -18,16 +18,35 @@ impl Simulator {
     pub fn new(url: &str) -> Result<Self> {
         let url = Url::parse(url)?;
 
-        let transport = alloy::providers::builder().on_http(url.to_owned());
-
         let db = BlockchainDb::new(
             BlockchainDbMeta::new(Default::default(), url.to_string()),
             Some("/tmp/evm.db".into()),
         );
-        let backend = SharedBackend::spawn_backend_thread(
-            transport, db, // we dont want to pin block
-            None,
-        );
+
+        let backend = match url.scheme() {
+            "http" => {
+                let transport = alloy::providers::builder().on_http(url);
+                SharedBackend::spawn_backend_thread(
+                    transport, db, // we dont want to pin block
+                    None,
+                )
+            }
+
+            "ws" => {
+                let transport = smol::block_on(async {
+                    alloy::providers::builder()
+                        .on_ws(alloy::providers::WsConnect::new(url))
+                        .await
+                })
+                .expect("Failed to connect to websocket");
+
+                SharedBackend::spawn_backend_thread(
+                    transport, db, // we dont want to pin block
+                    None,
+                )
+            }
+            _ => return Err(anyhow::anyhow!("Unsupported protocol")),
+        };
 
         let db = CacheDB::new(backend);
         let factory = EvmFactory { db };

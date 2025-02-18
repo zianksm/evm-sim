@@ -13,7 +13,7 @@ use sim::{
     simulator::{ExecutionError, ExecutionResult, Simulator},
 };
 use types::{
-    DatabaseErrorRef, EvmExecutionError, EvmExecutionResult, EvmSimulator, SimulationResult,
+    DatabaseErrorRef, EvmExecutionError, EvmSimulator, Log, Output, SimulationResult, Success,
     Transaction, Txs,
 };
 
@@ -22,10 +22,12 @@ fn evm_sim(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Transaction>()?;
     m.add_class::<EvmSimulator>()?;
     m.add_class::<Txs>()?;
-    m.add_class::<EvmExecutionResult>()?;
     m.add_class::<SimulationResult>()?;
     m.add_class::<DatabaseErrorRef>()?;
     m.add_class::<EvmExecutionError>()?;
+    m.add_class::<Success>()?;
+    m.add_class::<Log>()?;
+    m.add_class::<Output>()?;
 
     Ok(())
 }

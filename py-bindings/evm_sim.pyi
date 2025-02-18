@@ -3,7 +3,6 @@
 
 import builtins
 import typing
-from enum import Enum, auto
 
 class DatabaseErrorRef:
     def get(self) -> builtins.str:
@@ -13,24 +12,60 @@ class DatabaseErrorRef:
 class EvmExecutionError:
     ...
 
-class EvmExecutionResult:
-    ...
-
 class EvmSimulator:
     def __new__(cls,url:builtins.str): ...
     def simulate(self, transactions:Txs) -> builtins.list[SimulationResult]:
         ...
 
 
+class Log:
+    address: builtins.str
+    topics: builtins.list[builtins.list[builtins.int]]
+    data: builtins.list[builtins.int]
+
+class Output:
+    is_call: builtins.bool
+    data: builtins.list[builtins.int]
+    address: typing.Optional[builtins.str]
+
+class Revert:
+    gas_used: builtins.int
+    output: builtins.list[builtins.int]
+
+class SimulationResult:
+    def is_success(self) -> builtins.bool:
+        ...
+
+    def is_revert(self) -> builtins.bool:
+        ...
+
+    def is_halt(self) -> builtins.bool:
+        ...
+
+    def to_success(self) -> Success:
+        ...
+
+    def to_revert(self) -> Revert:
+        ...
+
+
+class Success:
+    reason: builtins.str
+    gas_used: builtins.int
+    gas_refunded: builtins.int
+    logs: builtins.list[Log]
+    output: Output
+
 class Transaction:
+    _from: builtins.str
+    to: builtins.str
+    value: builtins.str
+    data: builtins.list[builtins.int]
     def __new__(cls,_from:builtins.str, to:builtins.str, value:builtins.str, data:typing.Sequence[builtins.int]): ...
-    ...
 
 class Txs:
     def __new__(cls,txs:typing.Sequence[Transaction]): ...
-    ...
+    def transactions(self) -> builtins.list[Transaction]:
+        ...
 
-class SimulationResult(Enum):
-    Ok = auto()
-    Err = auto()
 
