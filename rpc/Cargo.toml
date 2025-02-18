@@ -1,0 +1,16 @@
+[package]
+name = "rpc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tonic = { workspace = true }
+prost = { workspace = true }
+tokio = { workspace = true }
+hex = { workspace = true }
+sim = { package = "simulator-core", path = "../sim" }
+serde_json = { workspace = true }
+
+
+[build-dependencies]
+tonic-build = { workspace = true }
