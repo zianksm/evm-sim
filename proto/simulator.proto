@@ -17,14 +17,14 @@ message InitializeReply {
 
 message Log {
     string address = 1;
-    repeated uint32 topics = 2;
-    repeated uint32 data = 3;
+    repeated string topics = 2;
+    string data = 3;
 }
 
 message Output {
     bool is_call = 1;
-    repeated string hex_data = 2;
-    string address = 3;
+    string hex_data = 2;
+    optional string address = 3;
 }
 
 message Revert {

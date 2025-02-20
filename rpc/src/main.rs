@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use sim::{evm_primitives::{self, ExecutionResult}, simulator::ExecutionResult, utils::Utils};
+use sim::{
+    evm_primitives::{self},
+    simulator::ExecutionResult,
+    utils::Utils,
+};
 use simulator::simulator_server::SimulatorServer;
 use tokio::sync::RwLock;
 use tonic::{server, transport::Server, Request, Response, Status};
@@ -50,11 +54,12 @@ impl From<ExecutionResult> for simulator::Result {
                 is_success: true,
                 revert: None,
                 success: Some(simulator::Success {
-                    reason: serde_json::to_string_pretty(&reason).expect("internal serialization should not fail"),
+                    reason: serde_json::to_string_pretty(&reason)
+                        .expect("internal serialization should not fail"),
                     gas_used,
                     gas_refunded,
-                    logs,
-                    output,
+                    logs: logs.into_iter().map(Into::into).collect(),
+                    output: Some(output.into()),
                 }),
             },
             ExecutionResult::Revert { gas_used, output } => todo!(),
@@ -63,13 +68,29 @@ impl From<ExecutionResult> for simulator::Result {
     }
 }
 
-
 impl From<evm_primitives::Log> for simulator::Log {
     fn from(value: evm_primitives::Log) -> Self {
+        let topics = value.topics();
+        let data = &value.data.data;
+        let address = value.address.to_string();
+
         Self {
-            address: value.address.to_string(),
-            topics: value.topics.iter().map(|t| t.to_string()).collect(),
-            data: value.data.to_string(),
+            address,
+            topics: topics.iter().map(hex::encode).collect(),
+            data: hex::encode(data),
+        }
+    }
+}
+
+impl From<evm_primitives::Output> for simulator::Output {
+    fn from(value: evm_primitives::Output) -> Self {
+        let address = value.address().map(|v| v.to_string());
+        let data = hex::encode(value.into_data());
+
+        Self {
+            is_call: address.is_some(),
+            hex_data: data,
+            address,
         }
     }
 }
