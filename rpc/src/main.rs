@@ -1,8 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use sim::{
-    evm_primitives::{self},
-    simulator::ExecutionResult,
+    evm_primitives::{self, ExecutionResult},
     utils::Utils,
 };
 use simulator::simulator_server::SimulatorServer;
@@ -135,10 +134,6 @@ impl simulator::simulator_server::Simulator for Simulators {
     ) -> Result<Response<simulator::InitializeReply>, Status> {
         let mut servers = self.servers.write().await;
         let req = request.into_inner();
-
-        if servers.contains_key(&req.chain_id) {
-            return Err(Status::already_exists("Chain already initialized"));
-        }
 
         let sim = sim::simulator::Simulator::new(&req.url)
             .map_err(|e| Status::internal(e.to_string()))?;
