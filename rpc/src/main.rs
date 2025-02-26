@@ -23,21 +23,6 @@ impl Simulators {
             servers: RwLock::new(HashMap::new()),
         }
     }
-
-    pub async fn initialize(&self, chain_id: ChainId, url: &str) -> Result<(), Status> {
-        let mut servers = self.servers.write().await;
-
-        if servers.contains_key(&chain_id) {
-            return Err(Status::already_exists("Chain already initialized"));
-        }
-
-        let sim =
-            sim::simulator::Simulator::new(url).map_err(|e| Status::internal(e.to_string()))?;
-
-        servers.insert(chain_id, sim);
-
-        Ok(())
-    }
 }
 
 impl From<ExecutionResult> for simulator::Result {
@@ -163,16 +148,84 @@ impl TryFrom<simulator::Transaction> for sim::evm::Tx {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse()?;
+async fn _start_serving() {
+    let addr = "[::1]:50051".parse().expect("Invalid address");
 
     let sim = Simulators::new();
 
     Server::builder()
         .add_service(SimulatorServer::new(sim))
         .serve(addr)
-        .await?;
+        .await
+        .expect("Failed to start server");
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    _start_serving().await;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use tonic::transport::Channel;
+
+    use crate::simulator::simulator_client;
+
+    use super::*;
+
+    async fn _start_anvil() {
+        let fork_url = std::env::var("FORK_TEST_URL").expect("FORK_TEST_URL not set");
+        let fork_block_number = 21921549_u64.to_string();
+
+        let args = vec![
+            "--fork-url",
+            &fork_url,
+            "--fork-block-number",
+            &fork_block_number,
+        ];
+
+        let _ = tokio::process::Command::new("anvil")
+            .args(args)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+    }
+
+    async fn start_test_server_and_initialize() -> simulator_client::SimulatorClient<Channel> {
+        tokio::spawn(_start_anvil());
+        tokio::spawn(_start_serving());
+
+        let mut client;
+
+        loop {
+            let _client = simulator_client::SimulatorClient::connect("http://[::1]:50051").await;
+
+            if let Ok(ok_client) = _client {
+                client = ok_client;
+                break;
+            }
+        }
+
+        loop {
+            let results = client
+                .initialize(simulator::InitializeRequest {
+                    chain_id: 1,
+                    url: "http://localhost:8545".into(),
+                })
+                .await;
+
+            if let Ok(_) = results {
+                break;
+            }
+        }
+
+        client
+    }
+
+    #[tokio::test]
+    async fn test_simulate() {
+        let client = start_test_server_and_initialize().await;
+    }
 }

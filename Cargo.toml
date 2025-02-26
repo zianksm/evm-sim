@@ -17,3 +17,5 @@ tonic = "0.12.3"                  # A gRPC over HTTP/2 implementation focused on
 prost = "0.13"
 tokio = { version = "1.41.1", features = ["macros", "rt-multi-thread"] }
 tonic-build = "0.12.3"                   # Codegen module of `tonic` gRPC implementation. 
+log = "0.4.26"                             # A lightweight logging facade for Rust 
+ethers = "2.0.14"                    # A complete Ethereum and Celo Rust library

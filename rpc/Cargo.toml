@@ -10,7 +10,14 @@ tokio = { workspace = true }
 hex = { workspace = true }
 sim = { package = "simulator-core", path = "../sim" }
 serde_json = { workspace = true }
+log = { workspace = true }
 
 
 [build-dependencies]
 tonic-build = { workspace = true }
+
+[profile.release]
+lto = true
+debug = false
+panic = "unwind"
+opt-level = "s"
